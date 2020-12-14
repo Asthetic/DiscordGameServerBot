@@ -13,7 +13,7 @@ const filename = "data.json"
 
 // WriteIP writes the current IP address to disk
 func WriteIP(data network.Network) error {
-	file, err := json.Marshal(data)
+	file, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return errors.Wrapf(err, "unable to marshal json data: %v", data)
 	}
