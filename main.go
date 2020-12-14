@@ -25,6 +25,8 @@ func main() {
 		return
 	}
 
+	defer discordBot.Close()
+
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, os.Kill)
 

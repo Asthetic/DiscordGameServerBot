@@ -15,10 +15,7 @@ type Discord struct {
 	channels []string
 }
 
-// Session is our global discord session
-var Session, _ = discordgo.New()
-
-// New creates a new Discord session and saves config
+// New creates a new Discord session with config
 func New(cfg config.Discord) (*Discord, error) {
 	dg, err := discordgo.New(fmt.Sprintf("Bot %s", cfg.Token))
 	if err != nil {
