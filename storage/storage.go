@@ -12,15 +12,25 @@ import (
 const filename = "data.json"
 
 // WriteIP writes the current IP address to disk
-func WriteIP(data network.Network) {
-	file, _ := json.Marshal(data)
-	_ = ioutil.WriteFile(filename, file, 0644)
+func WriteIP(data network.Network) error {
+	file, err := json.Marshal(data)
+	if err != nil {
+		return errors.Wrapf(err, "unable to marshal json data: %v", data)
+	}
+
+	if err = ioutil.WriteFile(filename, file, 0644); err != nil {
+		return errors.Wrapf(err, "unable to write json data to file name: %v", filename)
+	}
+
+	return nil
 }
 
 // GetIP reads the current IP from disk
 func GetIP() (string, error) {
 	if !fileExists(filename) {
-		WriteIP(network.Network{})
+		if err := WriteIP(network.Network{}); err != nil {
+			return "", errors.Wrapf(err, "error creating new file when it doesn't exist")
+		}
 	}
 
 	file, err := ioutil.ReadFile(filename)
