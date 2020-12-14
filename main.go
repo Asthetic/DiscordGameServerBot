@@ -5,16 +5,26 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/Asthetic/DiscordGameServerBot/config"
+	"github.com/Asthetic/DiscordGameServerBot/discord"
 	"github.com/Asthetic/DiscordGameServerBot/network"
 	"github.com/Asthetic/DiscordGameServerBot/storage"
-	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 )
 
-// Session is our global discord session
-var Session, _ = discordgo.New()
-
 func main() {
+	config, err := config.NewConfig()
+	if err != nil {
+		log.Error(err, "unable to read configuration file")
+		return
+	}
+
+	discordBot, err := discord.New(config.DiscordCfg)
+	if err != nil {
+		log.WithError(err).Error("Failed to initialize discord session")
+		return
+	}
+
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, os.Kill)
 
@@ -24,7 +34,7 @@ func main() {
 	done := make(chan bool)
 
 	for {
-		getIP()
+		getIP(discordBot)
 
 		select {
 		case <-done:
@@ -33,12 +43,12 @@ func main() {
 			log.Infof("Got signal to kill program: %v", s)
 			return
 		case <-ticker.C:
-			getIP()
+			getIP(discordBot)
 		}
 	}
 }
 
-func getIP() {
+func getIP(discord *discord.Discord) {
 	currentIP, err := storage.GetIP()
 	if err != nil {
 		log.WithError(err).Errorf("Error fetching file: %v", err)
@@ -55,6 +65,7 @@ func getIP() {
 		if err != nil {
 			log.WithError(err).Errorf("Error writing IP to local storage")
 		}
+		discord.SendUpdatedIP(ip)
 	}
 
 	log.Infof("%s", currentIP)
