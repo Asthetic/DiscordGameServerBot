@@ -57,7 +57,10 @@ func getIP(discord *discord.Discord) {
 	ip, err := network.GetPublicIP()
 	if err != nil {
 		log.WithError(err).Errorf("Error getting IP address: %v")
+		return
 	}
+
+	log.Infof("Sucessfully got public IP address: %v", ip)
 
 	if currentIP != ip {
 		currentIP = ip
@@ -65,8 +68,7 @@ func getIP(discord *discord.Discord) {
 		if err != nil {
 			log.WithError(err).Errorf("Error writing IP to local storage")
 		}
+
 		discord.SendUpdatedIP(ip)
 	}
-
-	log.Infof("%s", currentIP)
 }

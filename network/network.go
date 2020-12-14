@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 type Network struct {
@@ -23,18 +25,19 @@ func GetPublicIP() (string, error) {
 			resp, err := http.Get(endpoint)
 			if err != nil {
 				endpoints[endpoint] = false
+				return "", errors.Wrapf(err, "error getting IP address from endpoint: %v", endpoint)
 			}
 
 			body, err := ioutil.ReadAll(resp.Body)
 			defer resp.Body.Close()
 
 			if err != nil {
-				return "", err
+				return "", errors.Wrapf(err, "unable to read response body, endpoint: %v", endpoint)
 			}
 
 			ip := fmt.Sprintf("%s", body)
 			if net.ParseIP(ip) == nil {
-				return "", fmt.Errorf("incorrect format return for IPv4")
+				return "", fmt.Errorf("incorrect format return for IPv4 from endpoint: %v", endpoint)
 			}
 
 			return ip, nil
